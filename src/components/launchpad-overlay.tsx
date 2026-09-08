@@ -6,15 +6,18 @@ import iconGaleria from "@/assets/icons/galeria.png";
 import iconInstagram from "@/assets/icons/instagram.png";
 import iconPlanos from "@/assets/icons/planos.png";
 import iconProjetos from "@/assets/icons/projetos.png";
+import iconSobre from "@/assets/icons/sobre.png";
 import iconWhatsapp from "@/assets/icons/whatsapp.png";
-import { rectToOrigin, WHATSAPP_URL, type WindowKey } from "@/lib/windows";
+import { CRONOGRAMA_URL, rectToOrigin, WHATSAPP_URL, type WindowKey } from "@/lib/windows";
 
-// Mesmo agrupamento por função do dock (ver desktop-dock.tsx).
+// Mesmo agrupamento por função do dock (ver desktop-dock.tsx). "Sobre" só
+// existe aqui e no menu do topo (não tem ícone próprio no dock).
 const LAUNCHPAD_APPS: Array<{ label: string; icon: string } & ({ window: WindowKey } | { href: string })> = [
+  { label: "Sobre", icon: iconSobre, window: "sobre" },
   { label: "Projetos", icon: iconProjetos, window: "projetos" },
   { label: "Galeria", icon: iconGaleria, window: "galeria" },
   { label: "Pacotes", icon: iconPlanos, window: "pacotes" },
-  { label: "Calendário", icon: iconCalendario, window: "calendario" },
+  { label: "Calendário", icon: iconCalendario, href: CRONOGRAMA_URL },
   { label: "Contato", icon: iconEmail, window: "contato" },
   { label: "WhatsApp", icon: iconWhatsapp, href: WHATSAPP_URL("Olá! Vim pelo site da Olha o Take e quero saber mais.") },
   { label: "Instagram", icon: iconInstagram, window: "instagram" },

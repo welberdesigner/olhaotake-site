@@ -9,7 +9,7 @@ import iconInstagram from "@/assets/icons/instagram.png";
 import iconPlanos from "@/assets/icons/planos.png";
 import iconProjetos from "@/assets/icons/projetos.png";
 import iconWhatsapp from "@/assets/icons/whatsapp.png";
-import { rectToOrigin, WHATSAPP_URL, type WindowKey, type WindowOrigin } from "@/lib/windows";
+import { CRONOGRAMA_URL, rectToOrigin, WHATSAPP_URL, type WindowKey, type WindowOrigin } from "@/lib/windows";
 
 const BASE_SIZE = 68;
 const MAX_SIZE = 112;
@@ -32,7 +32,7 @@ const DOCK_ITEMS: DockItem[] = [
   { label: "Projetos", icon: iconProjetos, kind: "window", window: "projetos" },
   { label: "Galeria", icon: iconGaleria, kind: "window", window: "galeria" },
   { label: "Pacotes", icon: iconPlanos, kind: "window", window: "pacotes" },
-  { label: "Calendário", icon: iconCalendario, kind: "window", window: "calendario" },
+  { label: "Calendário", icon: iconCalendario, kind: "link", href: CRONOGRAMA_URL },
   { label: "Email", icon: iconEmail, kind: "window", window: "contato" },
   {
     label: "WhatsApp",

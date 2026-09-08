@@ -8,6 +8,10 @@ export const WHATSAPP_NUMBER = "5585987166705";
 export const WHATSAPP_URL = (message: string) =>
   `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 
+// Sistema de gestão/agenda da própria agência — o ícone "Calendário" abre
+// direto esse sistema (não uma janela interna do site).
+export const CRONOGRAMA_URL = "https://cronograma.olhaotake.com.br";
+
 export interface WindowOrigin {
   x: number;
   y: number;
