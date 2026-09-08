@@ -1,5 +1,6 @@
+import { motion } from "framer-motion";
 import { Play, Volume2, VolumeX } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import reel1 from "@/assets/media/reel-1.mp4";
 import reel2 from "@/assets/media/reel-2.mp4";
 import { cn } from "@/lib/utils";
@@ -172,11 +173,57 @@ export function ReelWidgetFill() {
   );
 }
 
-export function DesktopWidgets() {
+// Cada widget é arrastável de forma independente (dá pra soltar em
+// qualquer canto do desktop) — sem salvar em lugar nenhum, então
+// atualizar a página sempre volta pra essa posição empilhada aqui.
+//
+// O limite de arrasto usa uma "área segura" invisível (safeAreaRef) em vez
+// de valores fixos em pixels: um objeto fixo não sabe onde a topbar e o
+// dock realmente terminam, então ou sobrava espaço de sobra (o problema
+// relatado: a margem da esquerda deixava o widget avançar demais) ou faltava
+// nas outras direções. Com um elemento de referência, o framer-motion mede
+// o retângulo real dessa área a cada arrasto e nunca deixa o widget sair
+// dela — bloqueando os 4 lados (topo/base/esquerda/direita) de forma
+// consistente, sem invadir a topbar (textos "Sobre/Galeria/Contatos") nem
+// o dock (ícones), e se ajustando sozinho a qualquer tamanho de tela.
+function SafeDragArea({ areaRef }: { areaRef: RefObject<HTMLDivElement | null> }) {
   return (
-    <div className="fixed top-28 right-24 z-10 flex w-52 flex-col gap-5 sm:top-32 sm:right-28 sm:w-60">
-      <ClockWidget />
-      <ReelWidget />
-    </div>
+    <div
+      ref={areaRef}
+      aria-hidden="true"
+      className="pointer-events-none fixed inset-x-4 top-20 bottom-36 sm:inset-x-6 sm:top-24 sm:bottom-40"
+    />
+  );
+}
+
+export function DesktopWidgets() {
+  const safeAreaRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <>
+      <SafeDragArea areaRef={safeAreaRef} />
+      <div className="fixed top-28 right-24 z-10 flex w-52 flex-col gap-5 sm:top-32 sm:right-28 sm:w-60">
+        <motion.div
+          drag
+          dragMomentum={false}
+          dragConstraints={safeAreaRef}
+          dragElastic={0}
+          whileDrag={{ cursor: "grabbing" }}
+          className="cursor-grab"
+        >
+          <ClockWidget />
+        </motion.div>
+        <motion.div
+          drag
+          dragMomentum={false}
+          dragConstraints={safeAreaRef}
+          dragElastic={0}
+          whileDrag={{ cursor: "grabbing" }}
+          className="cursor-grab"
+        >
+          <ReelWidget />
+        </motion.div>
+      </div>
+    </>
   );
 }

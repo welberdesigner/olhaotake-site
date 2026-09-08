@@ -104,7 +104,7 @@ export function MobileHomeScreen({
 }) {
   return (
     <div
-      className="mx-auto grid h-svh w-full max-w-sm grid-cols-4 gap-3 overflow-hidden px-4 pt-[max(env(safe-area-inset-top),3.5rem)] pb-4"
+      className="mx-auto grid h-svh w-full max-w-sm grid-cols-4 gap-3 overflow-hidden px-4 pt-[max(env(safe-area-inset-top),5rem)] pb-4"
       style={{ gridTemplateRows: "repeat(8, 1fr)" }}
     >
       <div style={{ gridColumn: "1 / span 4", gridRow: "1 / span 2" }} className="min-h-0">

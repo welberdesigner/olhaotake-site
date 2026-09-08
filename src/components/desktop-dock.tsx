@@ -1,5 +1,5 @@
-import { motion, useMotionValue, useSpring, useTransform, type MotionValue } from "framer-motion";
-import { useRef } from "react";
+import { motion, Reorder, useMotionValue, useSpring, useTransform, type MotionValue } from "framer-motion";
+import { useRef, useState } from "react";
 import dockGlow from "@/assets/dock-glow.png";
 import iconApps from "@/assets/icons/apps.png";
 import iconCalendario from "@/assets/icons/calendario.png";
@@ -26,7 +26,9 @@ type DockItem = { label: string; icon: string } & (
 // Ordem agrupada por função (padrão comum de organização no iOS: apps
 // parecidos ficam juntos) — conteúdo/portfólio primeiro, depois negócio,
 // depois contato/comunicação, e o app social (que tira a pessoa do site)
-// por último.
+// por último. É só a ordem INICIAL: dá pra arrastar e reordenar (ver
+// DesktopDock abaixo), mas isso não é salvo — atualizar a página sempre
+// volta pra essa ordem aqui.
 const DOCK_ITEMS: DockItem[] = [
   { label: "Apps", icon: iconApps, kind: "launchpad" },
   { label: "Projetos", icon: iconProjetos, kind: "window", window: "projetos" },
@@ -79,6 +81,7 @@ function DockIcon({
       href={isExternalLink ? item.href : "#"}
       target={isExternalLink ? "_blank" : undefined}
       rel={isExternalLink ? "noopener noreferrer" : undefined}
+      draggable={false}
       aria-label={item.label}
       onClick={(e) => {
         if (item.kind === "launchpad") {
@@ -95,6 +98,7 @@ function DockIcon({
       <img
         src={item.icon}
         alt={item.label}
+        draggable={false}
         className="h-full w-full object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.35)]"
       />
       <span className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 rounded-md bg-black/70 px-2 py-1 text-xs font-medium whitespace-nowrap text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100">
@@ -112,6 +116,10 @@ export function DesktopDock({
   onOpenWindow: (key: WindowKey, origin: WindowOrigin) => void;
 }) {
   const mouseX = useMotionValue(Infinity);
+  // Estado só local (em memória) — arrastar pra reordenar não é salvo em
+  // lugar nenhum, então atualizar a página sempre volta pra ordem padrão
+  // de DOCK_ITEMS.
+  const [items, setItems] = useState(DOCK_ITEMS);
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-20 flex flex-col items-center">
@@ -122,21 +130,31 @@ export function DesktopDock({
         className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-auto w-full"
       />
 
-      <div
+      <Reorder.Group
+        as="div"
+        axis="x"
+        values={items}
+        onReorder={setItems}
         onMouseMove={(e) => mouseX.set(e.clientX)}
         onMouseLeave={() => mouseX.set(Infinity)}
         className="flex items-end gap-2 pb-2 sm:pb-3"
       >
-        {DOCK_ITEMS.map((item) => (
-          <DockIcon
+        {items.map((item) => (
+          <Reorder.Item
             key={item.label}
-            mouseX={mouseX}
-            item={item}
-            onOpenLaunchpad={onOpenLaunchpad}
-            onOpenWindow={onOpenWindow}
-          />
+            value={item}
+            as="div"
+            className="cursor-grab active:cursor-grabbing"
+          >
+            <DockIcon
+              mouseX={mouseX}
+              item={item}
+              onOpenLaunchpad={onOpenLaunchpad}
+              onOpenWindow={onOpenWindow}
+            />
+          </Reorder.Item>
         ))}
-      </div>
+      </Reorder.Group>
     </div>
   );
 }
