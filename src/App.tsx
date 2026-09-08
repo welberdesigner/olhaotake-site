@@ -30,20 +30,20 @@ export function App() {
       <AnimatedWallpaper />
 
       {isMobile ? (
-        <MobileHomeScreen onOpenWindow={openWindow_} />
+        <MobileHomeScreen onOpenWindow={openWindow_} onOpenLaunchpad={() => setLaunchpadOpen(true)} />
       ) : (
         <>
           <DesktopTopbar onOpenWindow={openWindow_} />
           <DesktopWidgets />
           <DesktopDock onOpenLaunchpad={() => setLaunchpadOpen(true)} onOpenWindow={openWindow_} />
-
-          <AnimatePresence>
-            {launchpadOpen && (
-              <LaunchpadOverlay onClose={() => setLaunchpadOpen(false)} onOpenWindow={openWindow_} />
-            )}
-          </AnimatePresence>
         </>
       )}
+
+      <AnimatePresence>
+        {launchpadOpen && (
+          <LaunchpadOverlay onClose={() => setLaunchpadOpen(false)} onOpenWindow={openWindow_} />
+        )}
+      </AnimatePresence>
 
       <InstagramNotificationToast onOpenWindow={openWindow_} />
       <DesktopContextMenu onOpenWindow={openWindow_} />
