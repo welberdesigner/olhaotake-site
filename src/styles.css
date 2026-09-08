@@ -713,3 +713,41 @@ a[href]:active,
   background: var(--art-bg) !important;
   color: var(--art-text) !important;
 }
+
+/* ============================================================
+   Wallpaper animado do site institucional (olhaotake-site) —
+   luzes pulsando nas cores da marca + campo de estrelas, sem
+   nenhuma imagem (ver AnimatedWallpaper em animated-wallpaper.tsx).
+   ============================================================ */
+@keyframes aurora-pulse {
+  0%, 100% { transform: scale(1) translate(0, 0); opacity: 0.65; }
+  50% { transform: scale(1.12) translate(2%, -2%); opacity: 0.95; }
+}
+
+.aurora-blob {
+  position: absolute;
+  border-radius: 9999px;
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+  animation-name: aurora-pulse;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+@keyframes star-twinkle {
+  0%, 100% { opacity: var(--star-min, 0.2); transform: scale(0.8); }
+  50% { opacity: var(--star-max, 1); transform: scale(1.15); }
+}
+
+.star {
+  position: absolute;
+  border-radius: 9999px;
+  background: white;
+  animation-name: star-twinkle;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-blob, .star { animation: none; }
+}
