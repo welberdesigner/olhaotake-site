@@ -1,5 +1,6 @@
 import { Instagram, Mail } from "lucide-react";
-import { rectToOrigin, type OpenWindowFn } from "@/lib/windows";
+import iconWhatsapp from "@/assets/icons/whatsapp.png";
+import { rectToOrigin, WHATSAPP_URL, type OpenWindowFn } from "@/lib/windows";
 
 // TODO: confirmar com o cliente o e-mail definitivo de contato.
 const CONTATO_EMAIL = "olhaotake2024@gmail.com";
@@ -15,6 +16,19 @@ export function ContactWindow({ onOpenWindow }: { onOpenWindow: OpenWindowFn }) 
       </div>
 
       <div className="space-y-3">
+        <a
+          href={WHATSAPP_URL("Olá! Vim pelo site da Olha o Take e quero saber mais.")}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 rounded-xl border border-border/60 bg-secondary/40 p-3.5 transition-colors hover:bg-secondary/70"
+        >
+          <img src={iconWhatsapp} alt="" className="h-9 w-9 shrink-0" />
+          <div className="min-w-0">
+            <p className="text-sm font-medium">WhatsApp</p>
+            <p className="truncate text-xs text-muted-foreground">Resposta mais rápida</p>
+          </div>
+        </a>
+
         <a
           href={`mailto:${CONTATO_EMAIL}`}
           className="flex items-center gap-3 rounded-xl border border-border/60 bg-secondary/40 p-3.5 transition-colors hover:bg-secondary/70"

@@ -6,8 +6,10 @@ import iconCalendario from "@/assets/icons/calendario.png";
 import iconEmail from "@/assets/icons/email.png";
 import iconGaleria from "@/assets/icons/galeria.png";
 import iconInstagram from "@/assets/icons/instagram.png";
+import iconPlanos from "@/assets/icons/planos.png";
 import iconProjetos from "@/assets/icons/projetos.png";
-import { rectToOrigin, type WindowKey, type WindowOrigin } from "@/lib/windows";
+import iconWhatsapp from "@/assets/icons/whatsapp.png";
+import { rectToOrigin, WHATSAPP_URL, type WindowKey, type WindowOrigin } from "@/lib/windows";
 
 const BASE_SIZE = 68;
 const MAX_SIZE = 112;
@@ -18,14 +20,26 @@ const MAGNIFY_RADIUS = 150;
 type DockItem = { label: string; icon: string } & (
   | { kind: "launchpad" }
   | { kind: "window"; window: WindowKey }
+  | { kind: "link"; href: string }
 );
 
+// Ordem agrupada por função (padrão comum de organização no iOS: apps
+// parecidos ficam juntos) — conteúdo/portfólio primeiro, depois negócio,
+// depois contato/comunicação, e o app social (que tira a pessoa do site)
+// por último.
 const DOCK_ITEMS: DockItem[] = [
   { label: "Apps", icon: iconApps, kind: "launchpad" },
   { label: "Projetos", icon: iconProjetos, kind: "window", window: "projetos" },
+  { label: "Galeria", icon: iconGaleria, kind: "window", window: "galeria" },
+  { label: "Pacotes", icon: iconPlanos, kind: "window", window: "pacotes" },
   { label: "Calendário", icon: iconCalendario, kind: "window", window: "calendario" },
   { label: "Email", icon: iconEmail, kind: "window", window: "contato" },
-  { label: "Galeria", icon: iconGaleria, kind: "window", window: "galeria" },
+  {
+    label: "WhatsApp",
+    icon: iconWhatsapp,
+    kind: "link",
+    href: WHATSAPP_URL("Olá! Vim pelo site da Olha o Take e quero saber mais."),
+  },
   { label: "Instagram", icon: iconInstagram, kind: "window", window: "instagram" },
 ];
 
@@ -57,16 +71,21 @@ function DockIcon({
   // vez de um salto instantâneo pro tamanho final, imitando o dock do macOS.
   const size = useSpring(sizeTarget, { mass: 0.2, stiffness: 90, damping: 16 });
 
+  const isExternalLink = item.kind === "link";
+
   return (
     <motion.a
       ref={ref}
-      href="#"
+      href={isExternalLink ? item.href : "#"}
+      target={isExternalLink ? "_blank" : undefined}
+      rel={isExternalLink ? "noopener noreferrer" : undefined}
       aria-label={item.label}
       onClick={(e) => {
-        e.preventDefault();
         if (item.kind === "launchpad") {
+          e.preventDefault();
           onOpenLaunchpad();
-        } else {
+        } else if (item.kind === "window") {
+          e.preventDefault();
           onOpenWindow(item.window, rectToOrigin(e.currentTarget.getBoundingClientRect()));
         }
       }}
@@ -106,7 +125,7 @@ export function DesktopDock({
       <div
         onMouseMove={(e) => mouseX.set(e.clientX)}
         onMouseLeave={() => mouseX.set(Infinity)}
-        className="flex items-end gap-2 pb-8 sm:pb-10"
+        className="flex items-end gap-2 pb-2 sm:pb-3"
       >
         {DOCK_ITEMS.map((item) => (
           <DockIcon

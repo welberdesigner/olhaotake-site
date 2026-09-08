@@ -751,3 +751,71 @@ a[href]:active,
 @media (prefers-reduced-motion: reduce) {
   .aurora-blob, .star { animation: none; }
 }
+
+/* Tela de boot — mesmo tratamento visual (halo pulsando atrás da logo) da
+   loading-screen do sistema de gestão (cronograma), só que com os tokens
+   deste projeto em vez de valores oklch fixos. */
+@keyframes boot-logo-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.06); opacity: 0.85; }
+}
+.boot-logo { animation: boot-logo-pulse 1.8s ease-in-out infinite; }
+
+@keyframes boot-halo-pulse {
+  0%, 100% { opacity: 0.45; transform: scale(0.9); }
+  50% { opacity: 0.85; transform: scale(1.15); }
+}
+.boot-halo { animation: boot-halo-pulse 1.8s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .boot-logo, .boot-halo { animation: none; }
+}
+
+/* "Vidro" dos widgets do desktop — camada extra de brilho no topo (efeito
+   de luz batendo no vidro) além do blur, pra não ficar só uma caixa
+   translúcida lisa. -webkit-backdrop-filter TEM que vir antes de
+   backdrop-filter (ver nota em cima do arquivo sobre o bug do lightningcss:
+   ordem trocada faz o build descartar a propriedade padrão). */
+.widget-glass {
+  position: relative;
+  background:
+    linear-gradient(160deg, oklch(1 0 0 / 0.18), oklch(1 0 0 / 0.03) 55%),
+    oklch(1 0 0 / 0.07);
+  border: 1px solid oklch(1 0 0 / 0.18);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+}
+
+/* Variante sem a borda de contorno — usada no widget de vídeo, onde a
+   linha ficava cortando o vídeo. Precisa ser uma classe própria (e não um
+   utilitário Tailwind tipo border-0): esse CSS não está dentro de nenhuma
+   @layer, então tem prioridade sobre a layer de utilities do Tailwind
+   independente da ordem — só outra regra fora de layer (como esta) sobrepõe. */
+.widget-glass--no-border {
+  border: none;
+}
+
+/* Sombra mais elaborada pros widgets claros do desktop (relógio, reels) —
+   além do shadow-float padrão, uma segunda camada bem sutil tingida na cor
+   da marca, pra "flutuar" sobre o wallpaper em vez de parecer um card
+   comum de dentro de uma janela. */
+.widget-card {
+  box-shadow:
+    0 30px 70px -28px oklch(0.25 0.06 285 / 0.35),
+    0 10px 28px -10px oklch(0.25 0.06 285 / 0.16),
+    0 0 0 1px oklch(0.52 0.22 285 / 0.05);
+}
+
+/* Texto com o degradê da marca "brilhando" — usado na frase sobre o vídeo
+   do widget de reels. O filter: drop-shadow funciona mesmo com o texto
+   transparente (color: transparent do .text-gradient), porque a sombra
+   segue o contorno dos glifos, não a cor de preenchimento. */
+@keyframes glow-pulse {
+  0%, 100% { filter: drop-shadow(0 0 6px oklch(0.66 0.28 340 / 0.6)) drop-shadow(0 0 14px oklch(0.58 0.24 295 / 0.35)); }
+  50% { filter: drop-shadow(0 0 12px oklch(0.66 0.28 340 / 0.85)) drop-shadow(0 0 22px oklch(0.58 0.24 295 / 0.55)); }
+}
+.glow-pulse { animation: glow-pulse 2.2s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .glow-pulse { animation: none; }
+}

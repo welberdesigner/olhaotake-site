@@ -12,7 +12,7 @@ export function InstagramWindow(_props: { onOpenWindow: OpenWindowFn }) {
       <iframe
         src={`${INSTAGRAM_URL}embed`}
         title="Instagram @olhaotake"
-        className="h-[520px] w-full border-0"
+        className="h-[434px] w-full border-0"
         loading="lazy"
         sandbox="allow-scripts allow-same-origin allow-popups"
       />

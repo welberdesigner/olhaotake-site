@@ -42,11 +42,11 @@ export function AnimatedWallpaper() {
   const stars = useStarField(140);
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-[var(--sidebar)]">
+    <div data-desktop-surface className="fixed inset-0 overflow-hidden bg-[var(--sidebar)]">
       {AURORA_BLOBS.map((blob, i) => (
         <div
           key={i}
-          className="aurora-blob"
+          className="aurora-blob pointer-events-none"
           style={{
             top: blob.top,
             left: blob.left,
@@ -62,7 +62,7 @@ export function AnimatedWallpaper() {
       {stars.map((s) => (
         <span
           key={s.id}
-          className="star"
+          className="star pointer-events-none"
           style={
             {
               top: `${s.top}%`,

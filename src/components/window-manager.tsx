@@ -4,6 +4,7 @@ import iconCalendario from "@/assets/icons/calendario.png";
 import iconEmail from "@/assets/icons/email.png";
 import iconGaleria from "@/assets/icons/galeria.png";
 import iconInstagram from "@/assets/icons/instagram.png";
+import iconPlanos from "@/assets/icons/planos.png";
 import iconProjetos from "@/assets/icons/projetos.png";
 import { AppWindow } from "@/components/desktop-window";
 import { AboutWindow } from "@/components/windows/about-window";
@@ -11,6 +12,7 @@ import { CalendarWindow } from "@/components/windows/calendar-window";
 import { ContactWindow } from "@/components/windows/contact-window";
 import { GalleryWindow } from "@/components/windows/gallery-window";
 import { InstagramWindow } from "@/components/windows/instagram-window";
+import { PackagesWindow } from "@/components/windows/packages-window";
 import { ProjectsWindow } from "@/components/windows/projects-window";
 import type { OpenWindowFn, WindowKey, WindowOrigin } from "@/lib/windows";
 
@@ -24,6 +26,7 @@ const WINDOW_REGISTRY: Record<
   contato: { title: "Contato", icon: iconEmail, Content: ContactWindow, className: "max-w-sm" },
   galeria: { title: "Galeria", icon: iconGaleria, Content: GalleryWindow, className: "max-w-xl" },
   instagram: { title: "Instagram", icon: iconInstagram, Content: InstagramWindow, className: "max-w-md" },
+  pacotes: { title: "Pacotes", icon: iconPlanos, Content: PackagesWindow, className: "max-w-lg" },
 };
 
 export function WindowManager({

@@ -4,14 +4,19 @@ import iconCalendario from "@/assets/icons/calendario.png";
 import iconEmail from "@/assets/icons/email.png";
 import iconGaleria from "@/assets/icons/galeria.png";
 import iconInstagram from "@/assets/icons/instagram.png";
+import iconPlanos from "@/assets/icons/planos.png";
 import iconProjetos from "@/assets/icons/projetos.png";
-import { rectToOrigin, type WindowKey } from "@/lib/windows";
+import iconWhatsapp from "@/assets/icons/whatsapp.png";
+import { rectToOrigin, WHATSAPP_URL, type WindowKey } from "@/lib/windows";
 
-const LAUNCHPAD_APPS: Array<{ label: string; icon: string; window: WindowKey }> = [
+// Mesmo agrupamento por função do dock (ver desktop-dock.tsx).
+const LAUNCHPAD_APPS: Array<{ label: string; icon: string } & ({ window: WindowKey } | { href: string })> = [
   { label: "Projetos", icon: iconProjetos, window: "projetos" },
+  { label: "Galeria", icon: iconGaleria, window: "galeria" },
+  { label: "Pacotes", icon: iconPlanos, window: "pacotes" },
   { label: "Calendário", icon: iconCalendario, window: "calendario" },
   { label: "Contato", icon: iconEmail, window: "contato" },
-  { label: "Galeria", icon: iconGaleria, window: "galeria" },
+  { label: "WhatsApp", icon: iconWhatsapp, href: WHATSAPP_URL("Olá! Vim pelo site da Olha o Take e quero saber mais.") },
   { label: "Instagram", icon: iconInstagram, window: "instagram" },
 ];
 
@@ -46,13 +51,18 @@ export function LaunchpadOverlay({
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.2 }}
-        className="grid grid-cols-3 gap-x-6 gap-y-8 sm:grid-cols-5 sm:gap-x-10"
+        className="grid grid-cols-3 gap-x-6 gap-y-8 sm:grid-cols-4 sm:gap-x-10"
       >
         {LAUNCHPAD_APPS.map((app) => (
           <button
             key={app.label}
             type="button"
             onClick={(e) => {
+              if ("href" in app) {
+                window.open(app.href, "_blank", "noopener,noreferrer");
+                onClose();
+                return;
+              }
               const rect = e.currentTarget.getBoundingClientRect();
               onOpenWindow(app.window, rectToOrigin(rect));
             }}
