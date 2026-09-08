@@ -156,6 +156,166 @@ export function ReelWidget() {
   );
 }
 
+// Feed "ao vivo" do que foi entregue hoje — puxa da API do cronograma
+// (rota pública `public_activity_today`, sem chave: só devolve eventos crus
+// {tipo, status, horário}, NUNCA nome de cliente ou título — ver
+// `publicActivityToday()` em api-completo-atualizado.php). Cada linha vira
+// "HH:MM  +N Tipo status" (horário primeiro, discreto; descrição depois,
+// em destaque — pedido explícito). Dois itens só viram uma linha "+N"
+// quando bateram status no MESMO MINUTO de verdade (pedido explícito) —
+// cada `statusChangedAt` é um `Date.now()` individual, então minuto (não
+// milissegundo exato) é o que captura "aconteceu junto" sem depender de
+// coincidência de milissegundo. Consulta de novo a cada 45s pra parecer
+// realmente ao vivo, sem precisar recarregar a página.
+type ActivityItem = { type: string; status: string; at: number };
+type ActivityGroup = { bucket: string; status: string; count: number; at: number };
+
+const ACTIVITY_ENDPOINT = "https://api.olhaotake.com.br/api.php?action=public_activity_today";
+const ACTIVITY_POLL_MS = 45_000;
+const ACTIVITY_MAX_LINES = 10;
+
+// Minúsculo de propósito (pedido explícito) — "arte enviada", "reels
+// aprovado", não "Arte"/"Reels".
+const ACTIVITY_TYPE_LABEL: Record<string, { singular: string; plural: string; gender: "m" | "f" }> = {
+  reels: { singular: "reels", plural: "reels", gender: "m" },
+  carrossel: { singular: "carrossel", plural: "carrosséis", gender: "m" },
+  // Arte de feed e arte de story viram o mesmo rótulo (ver canonicalActivityBucket).
+  image: { singular: "arte", plural: "artes", gender: "f" },
+  story: { singular: "story", plural: "stories", gender: "m" },
+};
+
+// Cada status é uma frase própria, não só um adjetivo — "enviado para
+// revisão" tem uma cauda fixa ("para revisão") que não pluraliza junto,
+// por isso singular/plural vêm prontos aqui em vez de montar com +"s".
+const ACTIVITY_STATUS_LABEL: Record<string, { m: string; f: string; mPlural: string; fPlural: string }> = {
+  review: {
+    m: "enviado para revisão",
+    f: "enviada para revisão",
+    mPlural: "enviados para revisão",
+    fPlural: "enviadas para revisão",
+  },
+  approved: { m: "aprovado", f: "aprovada", mPlural: "aprovados", fPlural: "aprovadas" },
+  published: { m: "postado", f: "postada", mPlural: "postados", fPlural: "postadas" },
+};
+
+// "storie_arte" (arte de story) e "image" (arte de feed) contam como o
+// mesmo rótulo "arte" — sem isso, apareceriam duas linhas "+1 arte..."
+// separadas no mesmo minuto.
+function canonicalActivityBucket(type: string): string | null {
+  if (type === "storie_arte") return "image";
+  return ACTIVITY_TYPE_LABEL[type] ? type : null;
+}
+
+// Horário e descrição separados (não uma string só) — o horário vem
+// PRIMEIRO na linha, num estilo discreto (menor, apagado), e a descrição
+// depois, em destaque. Pedido explícito de deixar mais bonito em vez de só
+// concatenar tudo num parágrafo corrido.
+type ActivityLine = { key: string; time: string; text: string };
+
+function formatActivityLine(group: ActivityGroup): ActivityLine | null {
+  const typeInfo = ACTIVITY_TYPE_LABEL[group.bucket];
+  const statusInfo = ACTIVITY_STATUS_LABEL[group.status];
+  if (!typeInfo || !statusInfo) return null;
+  const plural = group.count > 1;
+  const noun = plural ? typeInfo.plural : typeInfo.singular;
+  const phrase = plural
+    ? typeInfo.gender === "f"
+      ? statusInfo.fPlural
+      : statusInfo.mPlural
+    : typeInfo.gender === "f"
+      ? statusInfo.f
+      : statusInfo.m;
+  const time = new Date(group.at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  return {
+    key: `${group.bucket}|${group.status}|${group.at}`,
+    time,
+    text: `+${group.count} ${noun} ${phrase}`,
+  };
+}
+
+// `null` = ainda não carregou nenhuma vez (mostra "Carregando…"); depois
+// disso, uma falha de rede mantém a última lista boa em vez de zerar —
+// o widget nunca "quebra" por causa da API do cronograma estar fora do ar.
+function useActivityToday() {
+  const [lines, setLines] = useState<ActivityLine[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const res = await fetch(ACTIVITY_ENDPOINT, { cache: "no-store" });
+        if (!res.ok) throw new Error("bad status");
+        const json = await res.json();
+        if (cancelled || !json?.ok || !Array.isArray(json.items)) return;
+
+        // Agrupa só quem bateu status no mesmo minuto (mesmo bucket+status).
+        const groups = new Map<string, ActivityGroup>();
+        for (const item of json.items as ActivityItem[]) {
+          const bucket = canonicalActivityBucket(item.type);
+          if (!bucket || !Number.isFinite(item.at)) continue;
+          const minute = Math.floor(item.at / 60_000) * 60_000;
+          const key = `${bucket}|${item.status}|${minute}`;
+          const existing = groups.get(key);
+          if (existing) existing.count += 1;
+          else groups.set(key, { bucket, status: item.status, count: 1, at: item.at });
+        }
+
+        const formatted = Array.from(groups.values())
+          .sort((a, b) => b.at - a.at) // mais recente primeiro
+          .slice(0, ACTIVITY_MAX_LINES)
+          .map(formatActivityLine)
+          .filter((line): line is ActivityLine => Boolean(line));
+
+        if (!cancelled) setLines(formatted);
+      } catch {
+        // API indisponível ou bloqueada (ex.: CORS) — mantém o estado atual.
+      }
+    }
+
+    load();
+    const id = setInterval(load, ACTIVITY_POLL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, []);
+
+  return lines;
+}
+
+export function ActivityWidget() {
+  const lines = useActivityToday();
+
+  return (
+    <div className={cn(WIDGET_CARD, "flex h-full flex-col px-5 py-4 text-white")}>
+      <p className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-white/55 uppercase">
+        {/* Vermelho de propósito (pedido explícito) — é o "sinal de ao
+            vivo" universal (luz de gravação), não faz sentido tentar
+            encaixar no degradê da marca aqui. */}
+        <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-red-500" />
+        Agência Ao Vivo
+      </p>
+      <div className="mt-2.5 flex-1 overflow-y-auto">
+        {lines === null ? (
+          <p className="text-sm text-white/50">Carregando…</p>
+        ) : lines.length === 0 ? (
+          <p className="text-sm text-white/50">Nenhuma novidade ainda</p>
+        ) : (
+          <div className="divide-y divide-white/10">
+            {lines.map((line) => (
+              <div key={line.key} className="flex items-baseline gap-2.5 py-1.5 first:pt-0 last:pb-0">
+                <span className="w-9 shrink-0 text-[11px] font-medium tabular-nums text-white/45">{line.time}</span>
+                <span className="text-sm leading-snug font-medium">{line.text}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // Igual ao ReelWidget, mas ocupando 100% da altura do pai em vez de manter
 // a proporção 9:16 fixa — usado no mobile, onde a altura do vídeo precisa
 // corresponder exatamente a 4 "unidades" da grade (ver mobile-home-screen).
@@ -202,24 +362,53 @@ export function DesktopWidgets() {
   return (
     <>
       <SafeDragArea areaRef={safeAreaRef} />
-      <div className="fixed top-28 right-24 z-10 flex w-52 flex-col gap-5 sm:top-32 sm:right-28 sm:w-60">
+      {/* Grupo mais pra baixo e afastado do canto direito (margem maior —
+          pedido explícito: longe do canto, não coladinho). Relógio em
+          cima, status embaixo dele, numa coluna — e o vídeo do lado dessa
+          coluna.
+          IMPORTANTE: a coluna tem altura FIXA, calculada pra bater exato
+          com a altura do vídeo (aspect-[9/16] nas mesmas larguras w-52/
+          sm:w-60 do ReelWidget: 208px*16/9 e 240px*16/9). Antes isso era
+          feito com `items-stretch` (a coluna "esticava" até a altura do
+          vídeo) — mas quando o feed da Agência Ao Vivo cresce (mais
+          linhas), o CONTEÚDO da coluna passava a ser mais alto que o
+          vídeo, e aí era o VÍDEO que esticava (sem precisar, já que ele
+          tem proporção fixa) — o wrapper arrastável dele ficava mais alto
+          que a área seguro permitia, e o framer-motion "corrigia"
+          deslocando o vídeo pra cima pra caber, descolando os dois. Com
+          altura fixa na coluna (e `items-start` na fileira, sem stretch),
+          o vídeo nunca mais é esticado por causa do status — o status é
+          quem se adapta (`flex-1` + rolagem interna) a essa altura fixa. */}
+      <div className="fixed inset-x-0 top-40 z-10 flex items-start justify-end gap-4 pr-48 sm:top-44 sm:gap-5 sm:pr-64">
+        <div className="flex h-[369.8px] w-52 flex-col gap-5 sm:h-[426.7px] sm:w-60">
+          <motion.div
+            drag
+            dragMomentum={false}
+            dragConstraints={safeAreaRef}
+            dragElastic={0}
+            whileDrag={{ cursor: "grabbing" }}
+            className="cursor-grab"
+          >
+            <ClockWidget />
+          </motion.div>
+          <motion.div
+            drag
+            dragMomentum={false}
+            dragConstraints={safeAreaRef}
+            dragElastic={0}
+            whileDrag={{ cursor: "grabbing" }}
+            className="min-h-0 flex-1 cursor-grab"
+          >
+            <ActivityWidget />
+          </motion.div>
+        </div>
         <motion.div
           drag
           dragMomentum={false}
           dragConstraints={safeAreaRef}
           dragElastic={0}
           whileDrag={{ cursor: "grabbing" }}
-          className="cursor-grab"
-        >
-          <ClockWidget />
-        </motion.div>
-        <motion.div
-          drag
-          dragMomentum={false}
-          dragConstraints={safeAreaRef}
-          dragElastic={0}
-          whileDrag={{ cursor: "grabbing" }}
-          className="cursor-grab"
+          className="w-52 cursor-grab sm:w-60"
         >
           <ReelWidget />
         </motion.div>

@@ -1,6 +1,6 @@
 // Chaves das "janelas" que o desktop pode abrir. Compartilhado entre o dock,
 // a topbar e o launchpad pra manter tudo em sincronia.
-export type WindowKey = "sobre" | "projetos" | "calendario" | "contato" | "galeria" | "instagram" | "pacotes";
+export type WindowKey = "sobre" | "projetos" | "contato" | "galeria" | "instagram" | "pacotes";
 
 // Número de WhatsApp da agência, já em formato E.164 sem símbolos —
 // reaproveitado em vários lugares (dock, launchpad, mobile, contato, menu).

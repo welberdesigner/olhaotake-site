@@ -2,8 +2,7 @@ import { Instagram, Mail } from "lucide-react";
 import iconWhatsapp from "@/assets/icons/whatsapp.png";
 import { rectToOrigin, WHATSAPP_URL, type OpenWindowFn } from "@/lib/windows";
 
-// TODO: confirmar com o cliente o e-mail definitivo de contato.
-const CONTATO_EMAIL = "olhaotake2024@gmail.com";
+const CONTATO_EMAIL = "contato@olhaotake.com.br";
 
 export function ContactWindow({ onOpenWindow }: { onOpenWindow: OpenWindowFn }) {
   return (
