@@ -184,16 +184,12 @@ const ACTIVITY_TYPE_LABEL: Record<string, { singular: string; plural: string; ge
   story: { singular: "story", plural: "stories", gender: "m" },
 };
 
-// Cada status é uma frase própria, não só um adjetivo — "enviado para
-// revisão" tem uma cauda fixa ("para revisão") que não pluraliza junto,
-// por isso singular/plural vêm prontos aqui em vez de montar com +"s".
+// Cada status é uma frase própria, não só um adjetivo — "na revisão" é uma
+// frase fixa (não concorda em gênero/número com o tipo, ex.: "arte na
+// revisão" e "reels na revisão" usam a mesma forma), por isso vem pronta
+// aqui em vez de montar com +"s".
 const ACTIVITY_STATUS_LABEL: Record<string, { m: string; f: string; mPlural: string; fPlural: string }> = {
-  review: {
-    m: "enviado para revisão",
-    f: "enviada para revisão",
-    mPlural: "enviados para revisão",
-    fPlural: "enviadas para revisão",
-  },
+  review: { m: "na revisão", f: "na revisão", mPlural: "na revisão", fPlural: "na revisão" },
   approved: { m: "aprovado", f: "aprovada", mPlural: "aprovados", fPlural: "aprovadas" },
   published: { m: "postado", f: "postada", mPlural: "postados", fPlural: "postadas" },
 };
@@ -289,24 +285,24 @@ export function ActivityWidget() {
 
   return (
     <div className={cn(WIDGET_CARD, "flex h-full flex-col px-5 py-4 text-white")}>
-      <p className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-white/55 uppercase">
+      <p className="flex items-center gap-1.5 text-[10px] font-semibold tracking-wide text-white/55 uppercase">
         {/* Vermelho de propósito (pedido explícito) — é o "sinal de ao
             vivo" universal (luz de gravação), não faz sentido tentar
             encaixar no degradê da marca aqui. */}
         <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-red-500" />
         Agência Ao Vivo
       </p>
-      <div className="mt-2.5 flex-1 overflow-y-auto">
+      <div className="mt-2 flex-1 overflow-y-auto">
         {lines === null ? (
-          <p className="text-sm text-white/50">Carregando…</p>
+          <p className="text-xs text-white/50">Carregando…</p>
         ) : lines.length === 0 ? (
-          <p className="text-sm text-white/50">Nenhuma novidade ainda</p>
+          <p className="text-xs text-white/50">Nenhuma novidade ainda</p>
         ) : (
           <div className="divide-y divide-white/10">
             {lines.map((line) => (
-              <div key={line.key} className="flex items-baseline gap-2.5 py-1.5 first:pt-0 last:pb-0">
-                <span className="w-9 shrink-0 text-[11px] font-medium tabular-nums text-white/45">{line.time}</span>
-                <span className="text-sm leading-snug font-medium">{line.text}</span>
+              <div key={line.key} className="flex items-baseline gap-2 py-1 first:pt-0 last:pb-0">
+                <span className="w-8 shrink-0 text-[10px] font-medium tabular-nums text-white/45">{line.time}</span>
+                <span className="text-xs leading-snug font-medium">{line.text}</span>
               </div>
             ))}
           </div>
